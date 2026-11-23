@@ -1,4 +1,101 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getbuddy</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#060a18; }
+  .stage { position:absolute; top:0; left:0; right:0; bottom:0; }
+  .stage > svg { display:block; width:100%; height:100%; }
+  .footer {
+    position:absolute; left:0; right:0; bottom:0; height:44px;
+    display:flex; align-items:center; justify-content:center;
+    color:#aab6d4; font-size:14px; letter-spacing:.02em;
+    background:rgba(3,7,18,.26); border-top:1px solid rgba(140,170,230,.09); backdrop-filter:blur(2px);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    z-index:5;
+  }
+  .footer a { color:#9dbcf0; text-decoration:none; }
+  .footer a:hover { text-decoration:underline; }
+  .scene { transform-box:view-box; }
+  @media (min-width:641px){
+    .scene { transform-origin:600px 450px; transform:translateY(-100px) scale(.8); }
+  }
+  @media (max-width:640px){
+    .fo-chat { transform:translateY(42px); x:210px; width:780px; height:104px; }
+  }
+  .chatbar {
+    box-sizing:border-box; width:100%; height:100%;
+    display:flex; align-items:center; gap:18px; padding:0 30px;
+    border-radius:999px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.06) 52%, rgba(120,170,255,.14));
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    backdrop-filter:blur(26px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.60),
+      inset 0 0 0 1px rgba(255,255,255,.18),
+      inset 0 -1px 0 rgba(255,255,255,.08),
+      0 26px 60px rgba(0,6,26,.55),
+      0 6px 18px rgba(0,10,40,.32);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    animation:chat-in .7s cubic-bezier(.2,.8,.3,1) 1.7s both;
+  }
+  .chatbar::before {
+    content:""; position:absolute; left:0; right:0; top:0; height:56%;
+    border-radius:999px 999px 46% 46%/999px 999px 100% 100%;
+    background:linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  @keyframes chat-in { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .chatbar svg { background:transparent !important; }
+  .chatbar .cstar { width:56px; height:56px; flex:none; position:relative; z-index:1; filter:drop-shadow(0 0 10px rgba(15,135,255,.55)); }
+  .chatbar input {
+    flex:1; min-width:0; border:0; outline:0; background:transparent;
+    font-size:36px; color:#f4f7ff; font-family:inherit; letter-spacing:.01em;
+    text-shadow:0 1px 2px rgba(0,0,0,.28); position:relative; z-index:1;
+  }
+  .chatbar input::placeholder { color:rgba(233,240,255,.64); }
+  .chatbar .csend {
+    width:62px; height:62px; flex:none; border:0; padding:0; cursor:pointer;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    position:relative; z-index:1;
+    background:linear-gradient(145deg, #5cb0ff, #0f7bff 55%, #0a5fe0);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,.70),
+      inset 0 -3px 6px rgba(0,40,120,.35),
+      0 10px 24px rgba(15,110,255,.55),
+      0 2px 6px rgba(0,20,80,.40);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .chatbar .csend:hover {
+    transform:translateY(-2px) scale(1.05);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.7), inset 0 -3px 6px rgba(0,40,120,.35), 0 14px 30px rgba(15,110,255,.7), 0 2px 6px rgba(0,20,80,.4);
+  }
+  .chatbar .csend:active { transform:scale(.94); }
+  .chatbar .csend svg { width:30px; height:30px; }
+  @media (max-width:640px){
+    .footer { font-size:12px; }
+    .chatbar input { font-size:30px !important; }
+    .chatbar .cstar { width:56px !important; height:56px !important; }
+    .chatbar .csend { width:68px !important; height:68px !important; }
+    .chatbar .csend svg { width:32px !important; height:32px !important; }
+  }
+  #gb-toast {
+    position:fixed; left:50%; top:42%; transform:translate(-50%,-8px);
+    white-space:nowrap;
+    color:rgba(233,240,255,.64); font-size:16px; letter-spacing:.02em;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    opacity:0; pointer-events:none; z-index:99; transition:opacity .25s ease, transform .25s ease;
+  }
+  #gb-toast.show { opacity:1; transform:translate(-50%,0); }
+  @media (max-width:640px){ #gb-toast { font-size:12px; } }
+</style>
+</head>
+<body>
+  <div class="stage">
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-label="Getbuddy" style="background:#060a18;display:block">
   <title>Getbuddy</title>
   <defs>
@@ -126,6 +223,7 @@
 
   <svg width="100%" height="100%" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet">
     
+    <g class="scene">
     <g transform="translate(600 312) scale(0.92) translate(-287.5 -787.5)">
       <rect x="121" y="621" width="333" height="333" rx="69" fill="#ffffff"/>
       <rect x="126" y="626" width="323" height="323" rx="64" fill="#000000"/>
@@ -157,5 +255,85 @@
     <g transform="translate(1020 611) scale(0.055) translate(-512 -512)">
       <g class="sparkle"><path d="M524.608 861.888c2.304 11.648 19.072 11.648 21.44 0A436.224 436.224 0 0 1 888.96 520.32c11.776-2.304 11.776-19.008 0-21.312a436.224 436.224 0 0 1-342.976-341.44c-2.304-11.712-19.072-11.712-21.44 0a436.224 436.224 0 0 1-342.976 341.44c-11.712 2.304-11.712 19.008 0 21.312a436.224 436.224 0 0 1 343.04 341.504z" fill="#0F87FF"/></g>
     </g>
+    <foreignObject class="fo-chat" x="170" y="800" width="860" height="88">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="chatbar">
+        <svg class="cstar" viewBox="0 0 1024 1024"><path d="M714.4 544.576l-85.6-26.08c-80.48-24.704-143.776-89.44-167.488-172.832l-25.12-89.472a36.064 36.064 0 0 0-23.744-24.672 34.24 34.24 0 0 0-26.976 2.784c-8.384 4.672-14.4 12.576-17.216 21.888l-25.6 88.96c-23.68 82.944-86.976 148.16-167.456 172.864l-85.6 26.112c-14.912 4.64-25.6 18.624-25.6 34.912 0 15.84 10.24 30.304 25.12 34.944l86.528 27.04c80 24.672 142.368 89.44 166.56 171.904l25.6 88.96c4.16 15.392 18.144 26.112 33.92 26.112 15.84 0 29.792-10.72 33.984-26.08l25.6-88.992c23.712-82.464 86.528-147.2 166.08-172.384l87.008-27.008c15.36-4.672 25.6-19.104 25.12-34.944a35.2 35.2 0 0 0-25.12-34.016z m233.984-285.888l-33.984-10.24a152.384 152.384 0 0 1-101.888-105.28l-10.24-35.424a15.36 15.36 0 0 0-10.688-11.2h-0.448a15.968 15.968 0 0 0-19.552 11.68l-10.24 35.392a153.28 153.28 0 0 1-101.888 105.28l-33.952 10.24a16.48 16.48 0 0 0-11.648 15.872c0 7.424 4.672 13.504 11.648 15.84l34.432 10.688a153.76 153.76 0 0 1 101.44 104.832l10.208 35.424a15.904 15.904 0 0 0 30.72 0l10.24-35.424a152.864 152.864 0 0 1 101.408-104.832l34.432-10.688A16.928 16.928 0 0 0 960 275.008c0-7.936-4.64-14.464-11.616-16.32z" fill="#0185f3"/></svg>
+        <input type="text" placeholder="告诉 Getbuddy 你的想法..." aria-label="告诉 Getbuddy 你的想法"/>
+        <button class="csend" type="button" aria-label="发送"><svg viewBox="0 0 24 24"><path d="M12 20a1.5 1.5 0 0 1-1.5-1.5V7.62l-4.06 4.06a1.5 1.5 0 0 1-2.12-2.12l6.62-6.62a1.5 1.5 0 0 1 2.12 0l6.62 6.62a1.5 1.5 0 0 1-2.12 2.12L13.5 7.62V18.5A1.5 1.5 0 0 1 12 20z" fill="#ffffff"/></svg></button>
+      </div>
+    </foreignObject>
+    </g>
   </svg>
 </svg>
+  </div>
+  <div class="footer">合作邮箱：<a href="mailto:6181686@gmali.com">6181686@gmali.com</a></div>
+  <div id="gb-toast" role="status" aria-live="polite"></div>
+  <script>
+  (function(){
+    var input = document.querySelector('.chatbar input');
+    var btn = document.querySelector('.chatbar .csend');
+    var toast = document.getElementById('gb-toast');
+    var timer;
+    if(!input || !btn || !toast) return;
+    var bar = document.querySelector('.chatbar');
+    function place(){
+      if(!bar) return;
+      var r = bar.getBoundingClientRect();
+      toast.style.left = (r.left + r.width/2) + 'px';
+      toast.style.top  = (r.bottom + 54) + 'px';
+    }
+    function show(msg){
+      place();
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(timer);
+      timer = setTimeout(function(){ toast.classList.remove('show'); }, 1800);
+    }
+    function submit(){
+      var v = (input.value || '').trim();
+      show(v ? '暂未开放' : '请输入内容');
+    }
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ submit(); } });
+
+    // 打字机占位文字：逐字出现，完成后循环重打
+    var texts = ['告诉 Getbuddy 你的想法...', '像聊天一样，更少操作，更多成果。', '极简交互，懂你所想，帮你所需。'];
+    var seg = 0, idx = 0, phase = 'type', hold = 0;
+    var fo = document.querySelector('.fo-chat');
+    var mctx = document.createElement('canvas').getContext('2d');
+    function fitWidth(text){
+      if(!fo) return;
+      var mobile = window.matchMedia('(max-width:640px)').matches;
+      var px = mobile ? 30 : 36;
+      mctx.font = px + 'px "PingFang SC", "Microsoft YaHei", sans-serif';
+      var w = Math.ceil((mobile ? 250 : 240) + mctx.measureText(text).width + 20);
+      w = Math.max(560, Math.min(w, 1080));
+      fo.style.transition = 'width .45s cubic-bezier(.4,0,.2,1), x .45s cubic-bezier(.4,0,.2,1)';
+      fo.style.width = w + 'px';
+      fo.style.x = ((1200 - w) / 2) + 'px';
+    }
+    fitWidth(texts[0]);
+    window.addEventListener('resize', function(){ fitWidth(texts[seg]); });
+    setTimeout(function tick(){
+      var fullText = texts[seg];
+      var delay = 130;
+      if(phase === 'type'){
+        idx++;
+        input.placeholder = fullText.slice(0, idx) + '|';
+        if(idx >= fullText.length){ phase = 'hold'; hold = 0; }
+      } else if(phase === 'hold'){
+        hold++;
+        input.placeholder = fullText + (hold % 12 < 6 ? '|' : '');
+        if(hold > 36){ phase = 'erase'; }
+      } else {
+        idx--;
+        input.placeholder = fullText.slice(0, Math.max(0, idx)) + '|';
+        delay = 55;
+        if(idx <= 0){ phase = 'type'; idx = 0; seg = (seg + 1) % texts.length; fitWidth(texts[seg]); }
+      }
+      setTimeout(tick, delay);
+    }, 1800);
+  })();
+  </script>
+</body>
+</html>
