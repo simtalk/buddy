@@ -21,12 +21,15 @@
   .footer a { color:#9dbcf0; text-decoration:none; }
   .footer a:hover { text-decoration:underline; }
   .scene { transform-box:view-box; }
-  .fo-chat { background:transparent; fill:none; border-radius:999px; }
+  .fo-anchor { fill:none; pointer-events:none; }
+  .chatbar-shell {
+    position:absolute; left:0; top:0; transform-origin:0 0;
+    z-index:3; pointer-events:none; will-change:transform;
+  }
+  .chatbar-shell.ready { transition:transform .45s cubic-bezier(.4,0,.2,1); }
+  .chatbar-shell .chatbar { pointer-events:auto; }
   @media (min-width:641px){
     .scene { transform-origin:600px 450px; transform:translateY(-100px) scale(.8); }
-  }
-  @media (max-width:640px){
-    .fo-chat { transform:translateY(42px); x:210px; width:780px; height:104px; }
   }
   .chatbar {
     box-sizing:border-box; width:100%; height:100%;
@@ -256,18 +259,19 @@
     <g transform="translate(1020 611) scale(0.055) translate(-512 -512)">
       <g class="sparkle"><path d="M524.608 861.888c2.304 11.648 19.072 11.648 21.44 0A436.224 436.224 0 0 1 888.96 520.32c11.776-2.304 11.776-19.008 0-21.312a436.224 436.224 0 0 1-342.976-341.44c-2.304-11.712-19.072-11.712-21.44 0a436.224 436.224 0 0 1-342.976 341.44c-11.712 2.304-11.712 19.008 0 21.312a436.224 436.224 0 0 1 343.04 341.504z" fill="#0F87FF"/></g>
     </g>
-    <foreignObject class="fo-chat" x="170" y="800" width="860" height="88">
-      <div xmlns="http://www.w3.org/1999/xhtml" class="chatbar">
-        <svg class="cstar" viewBox="0 0 1024 1024"><path d="M714.4 544.576l-85.6-26.08c-80.48-24.704-143.776-89.44-167.488-172.832l-25.12-89.472a36.064 36.064 0 0 0-23.744-24.672 34.24 34.24 0 0 0-26.976 2.784c-8.384 4.672-14.4 12.576-17.216 21.888l-25.6 88.96c-23.68 82.944-86.976 148.16-167.456 172.864l-85.6 26.112c-14.912 4.64-25.6 18.624-25.6 34.912 0 15.84 10.24 30.304 25.12 34.944l86.528 27.04c80 24.672 142.368 89.44 166.56 171.904l25.6 88.96c4.16 15.392 18.144 26.112 33.92 26.112 15.84 0 29.792-10.72 33.984-26.08l25.6-88.992c23.712-82.464 86.528-147.2 166.08-172.384l87.008-27.008c15.36-4.672 25.6-19.104 25.12-34.944a35.2 35.2 0 0 0-25.12-34.016z m233.984-285.888l-33.984-10.24a152.384 152.384 0 0 1-101.888-105.28l-10.24-35.424a15.36 15.36 0 0 0-10.688-11.2h-0.448a15.968 15.968 0 0 0-19.552 11.68l-10.24 35.392a153.28 153.28 0 0 1-101.888 105.28l-33.952 10.24a16.48 16.48 0 0 0-11.648 15.872c0 7.424 4.672 13.504 11.648 15.84l34.432 10.688a153.76 153.76 0 0 1 101.44 104.832l10.208 35.424a15.904 15.904 0 0 0 30.72 0l10.24-35.424a152.864 152.864 0 0 1 101.408-104.832l34.432-10.688A16.928 16.928 0 0 0 960 275.008c0-7.936-4.64-14.464-11.616-16.32z" fill="#0185f3"/></svg>
-        <input type="text" placeholder="告诉 Getbuddy 你的想法..." aria-label="告诉 Getbuddy 你的想法"/>
-        <button class="csend" type="button" aria-label="发送"><svg viewBox="0 0 24 24"><path d="M12 20a1.5 1.5 0 0 1-1.5-1.5V7.62l-4.06 4.06a1.5 1.5 0 0 1-2.12-2.12l6.62-6.62a1.5 1.5 0 0 1 2.12 0l6.62 6.62a1.5 1.5 0 0 1-2.12 2.12L13.5 7.62V18.5A1.5 1.5 0 0 1 12 20z" fill="#ffffff"/></svg></button>
-      </div>
-    </foreignObject>
+        <rect class="fo-anchor" id="foAnchor" x="170" y="800" width="860" height="88" fill="none"/>
     </g>
   </svg>
 </svg>
+    <div class="chatbar-shell" id="chatbarShell">
+  <div xmlns="http://www.w3.org/1999/xhtml" class="chatbar">
+          <svg class="cstar" viewBox="0 0 1024 1024"><path d="M714.4 544.576l-85.6-26.08c-80.48-24.704-143.776-89.44-167.488-172.832l-25.12-89.472a36.064 36.064 0 0 0-23.744-24.672 34.24 34.24 0 0 0-26.976 2.784c-8.384 4.672-14.4 12.576-17.216 21.888l-25.6 88.96c-23.68 82.944-86.976 148.16-167.456 172.864l-85.6 26.112c-14.912 4.64-25.6 18.624-25.6 34.912 0 15.84 10.24 30.304 25.12 34.944l86.528 27.04c80 24.672 142.368 89.44 166.56 171.904l25.6 88.96c4.16 15.392 18.144 26.112 33.92 26.112 15.84 0 29.792-10.72 33.984-26.08l25.6-88.992c23.712-82.464 86.528-147.2 166.08-172.384l87.008-27.008c15.36-4.672 25.6-19.104 25.12-34.944a35.2 35.2 0 0 0-25.12-34.016z m233.984-285.888l-33.984-10.24a152.384 152.384 0 0 1-101.888-105.28l-10.24-35.424a15.36 15.36 0 0 0-10.688-11.2h-0.448a15.968 15.968 0 0 0-19.552 11.68l-10.24 35.392a153.28 153.28 0 0 1-101.888 105.28l-33.952 10.24a16.48 16.48 0 0 0-11.648 15.872c0 7.424 4.672 13.504 11.648 15.84l34.432 10.688a153.76 153.76 0 0 1 101.44 104.832l10.208 35.424a15.904 15.904 0 0 0 30.72 0l10.24-35.424a152.864 152.864 0 0 1 101.408-104.832l34.432-10.688A16.928 16.928 0 0 0 960 275.008c0-7.936-4.64-14.464-11.616-16.32z" fill="#0185f3"/></svg>
+          <input type="text" placeholder="告诉 Getbuddy 你的想法..." aria-label="告诉 Getbuddy 你的想法"/>
+          <button class="csend" type="button" aria-label="发送"><svg viewBox="0 0 24 24"><path d="M12 20a1.5 1.5 0 0 1-1.5-1.5V7.62l-4.06 4.06a1.5 1.5 0 0 1-2.12-2.12l6.62-6.62a1.5 1.5 0 0 1 2.12 0l6.62 6.62a1.5 1.5 0 0 1-2.12 2.12L13.5 7.62V18.5A1.5 1.5 0 0 1 12 20z" fill="#ffffff"/></svg></button>
+        </div>
+    </div>
   </div>
-  <div class="footer">合作邮箱：<a href="mailto:6181686@gmali.com">6181686@gmali.com</a></div>
+  <div class="footer">合作邮箱：<a href="mailto:6181686@gmail.com">6181686@gmail.com</a></div>
   <div id="gb-toast" role="status" aria-live="polite"></div>
   <script>
   (function(){
@@ -300,22 +304,40 @@
     // 打字机占位文字：逐字出现，完成后循环重打
     var texts = ['告诉 Getbuddy 你的想法...', '像聊天一样，更少操作，更多成果。', '极简交互，懂你所想，帮你所需。'];
     var seg = 0, idx = 0, phase = 'type', hold = 0;
-    var fo = document.querySelector('.fo-chat');
+    var anchor = document.getElementById('foAnchor');
+    var shell = document.getElementById('chatbarShell');
     var mctx = document.createElement('canvas').getContext('2d');
+    var barW = 860, barH = 88;
+    // 用不可见 rect 锚点取得输入框在屏幕上的真实矩形（已含 scene 变换与 viewBox 映射），
+    // 再把独立 HTML 输入框层定位并整体缩放到该矩形——iOS 上不再依赖 foreignObject
+    function positionChatbar(){
+      if(!anchor || !shell) return;
+      var r = anchor.getBoundingClientRect();
+      if(!r.width) return;
+      var k = r.width / barW;
+      shell.style.width = barW + 'px';
+      shell.style.height = barH + 'px';
+      shell.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px) scale(' + k + ')';
+    }
     function fitWidth(text){
-      if(!fo) return;
+      if(!anchor) return;
       var mobile = window.matchMedia('(max-width:640px)').matches;
       var px = mobile ? 30 : 36;
       mctx.font = px + 'px "PingFang SC", "Microsoft YaHei", sans-serif';
-      var w = Math.ceil((mobile ? 250 : 240) + mctx.measureText(text).width + 20);
-      w = Math.max(560, Math.min(w, 1080));
-      fo.style.transition = 'width .45s cubic-bezier(.4,0,.2,1), x .45s cubic-bezier(.4,0,.2,1)';
-      fo.style.width = w + 'px';
-      fo.style.x = ((1200 - w) / 2) + 'px';
+      var w = mobile ? 780 : Math.max(560, Math.min(Math.ceil(240 + mctx.measureText(text).width + 20), 1080));
+      var h = mobile ? 104 : 88;
+      barW = w; barH = h;
+      anchor.setAttribute('width', w);
+      anchor.setAttribute('x', mobile ? 210 : (1200 - w) / 2);
+      anchor.setAttribute('y', mobile ? 842 : 800);
+      anchor.setAttribute('height', h);
+      positionChatbar();
     }
     fitWidth(texts[0]);
     input.placeholder = '';
+    setTimeout(function(){ if(shell){ shell.classList.add('ready'); positionChatbar(); } }, 60);
     window.addEventListener('resize', function(){ fitWidth(texts[seg]); });
+    window.addEventListener('load', positionChatbar);
     setTimeout(function tick(){
       var fullText = texts[seg];
       var delay = 130;
@@ -336,6 +358,7 @@
       setTimeout(tick, delay);
     }, 2400);
   })();
-  </script>
+
+    </script>
 </body>
 </html>
