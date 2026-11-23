@@ -3,10 +3,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Getbuddy</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   html, body { width:100%; height:100%; overflow:hidden; background:#060a18; }
   .stage { position:absolute; top:0; left:0; right:0; bottom:0; }
   .stage > svg { display:block; width:100%; height:100%; }
@@ -23,7 +24,7 @@
   .scene { transform-box:view-box; }
   .fo-anchor { fill:none; pointer-events:none; }
   .chatbar-shell {
-    position:absolute; left:0; top:0; transform-origin:0 0;
+    position:fixed; left:0; top:0; transform-origin:0 0;
     z-index:3; pointer-events:none; will-change:transform;
   }
   .chatbar-shell.ready { transition:transform .45s cubic-bezier(.4,0,.2,1); }
@@ -55,7 +56,9 @@
   }
   @keyframes chat-in { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
   .chatbar svg { background:transparent !important; }
-  .chatbar .cstar { width:56px; height:56px; flex:none; position:relative; z-index:1; filter:drop-shadow(0 0 10px rgba(15,135,255,.55)); }
+  .chatbar .cstar { width:56px; height:56px; flex:none; position:relative; z-index:1; margin-left:-3.5px; filter:drop-shadow(0 0 10px rgba(15,135,255,.55)); }
+  .chatbar .cstar-sm { transform-box:fill-box; transform-origin:center; animation:star-think 2.4s ease-in-out infinite; }
+  @keyframes star-think { 0%{transform:rotate(0deg) scale(.86);opacity:.5} 50%{transform:rotate(180deg) scale(1.14);opacity:1} 100%{transform:rotate(360deg) scale(.86);opacity:.5} }
   .chatbar input {
     flex:1; min-width:0; border:0; outline:0; background:transparent;
     font-size:36px; color:#f4f7ff; font-family:inherit; letter-spacing:.01em;
@@ -79,14 +82,15 @@
     box-shadow:inset 0 1px 1px rgba(255,255,255,.7), inset 0 -3px 6px rgba(0,40,120,.35), 0 14px 30px rgba(15,110,255,.7), 0 2px 6px rgba(0,20,80,.4);
   }
   .chatbar .csend:active { transform:scale(.94); }
-  .chatbar .csend svg { width:30px; height:30px; }
+  .chatbar .csend svg { width:34px; height:34px; }
   @media (max-width:640px){
     .footer { font-size:12px; }
     .scene { transform:translateY(-110px); }
-    .chatbar input { font-size:30px !important; }
-    .chatbar .cstar { width:56px !important; height:56px !important; }
-    .chatbar .csend { width:68px !important; height:68px !important; }
-    .chatbar .csend svg { width:32px !important; height:32px !important; }
+    .chatbar input { font-size:40px !important; }
+    .chatbar .cstar { width:74px !important; height:74px !important; margin-left:-4.6px !important; }
+    .chatbar .csend { width:88px !important; height:88px !important; }
+    .chatbar .csend svg { width:44px !important; height:44px !important; }
+    .chatbar .csend .cspin { width:34px !important; height:34px !important; border-width:3px !important; }
   }
   #gb-toast {
     position:fixed; left:50%; top:42%; transform:translate(-50%,-8px);
@@ -134,13 +138,15 @@
     </radialGradient>
     
     <clipPath id="frameClip"><rect x="126" y="626" width="323" height="323" rx="64"/></clipPath>
-    
     <clipPath id="spotClip" clipPathUnits="userSpaceOnUse"><circle class="spot" cx="355" cy="815" r="0"/></clipPath>
   </defs>
   <style>
     html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #060a18; }
     svg { background: linear-gradient(135deg,#050914 0%,#0b1730 52%,#060c1b 100%); display: block; }
     
+    /* 大厂风：点阵涟漪揭示（圆点由中心向外依次点亮并放大融合） */
+/* 大厂风：像素块解构重组（方块从外围带偏移旋转飞入、归位拼合成画面） */
+/* 圆形探照灯扩散：硬边光圈从猫脸中心扩大（2s，还原初版） */
     .spot { animation: spot-open 2s cubic-bezier(.4,.3,.2,1) .06s both; }
     @keyframes spot-open {
       from { r: 0px; }
@@ -165,6 +171,14 @@
       0%,41%,48%,52%,59%,100% { transform: rotate(-30deg) scaleY(1); }
       44%,55% { transform: rotate(-30deg) scaleY(.05); }
     }
+    /* 有其它表情动画时暂停自动眨眼，避免串动；保持 -30deg 倾斜不变 */
+    .cat.wink .eye-l, .cat.wink .eye-r,
+    .cat.sleepy .eye-l, .cat.sleepy .eye-r,
+    .cat.shake .eye-l, .cat.shake .eye-r,
+    .cat.nod .eye-l, .cat.nod .eye-r {
+      animation: none !important;
+      transform: rotate(-30deg);
+    }
 
     .sparkle {
       transform-box: fill-box;
@@ -184,6 +198,37 @@
     }
     .flow { stroke-dasharray: 100 900; animation: flowmove var(--dur,9s) linear var(--del,0s) infinite; }
     @keyframes flowmove { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+    /* 点猫彩蛋：眨眼一次 */
+    @keyframes blink-once { 0%,100%{transform:rotate(-30deg) scaleY(1)} 50%{transform:rotate(-30deg) scaleY(.05)} }
+    .eye-l.blink-now, .eye-r.blink-now { animation: blink-once .42s ease-in-out !important; }
+    /* 睡着姿态：瞳孔淡出，弯月睡眼淡入 */
+    .sleep-eye { opacity:0; transition:opacity .18s ease; }
+    .eye-l, .eye-r { transition:opacity .18s ease; }
+    .cat.sleepy .eye-l, .cat.sleepy .eye-r { opacity:0; }
+    .cat.sleepy .sleep-eye { opacity:1; }
+    /* 点猫彩蛋：俏皮 wink —— 一条向上拱的弯月，只闭右眼 */
+    .wink-eye { opacity:0; transition:opacity .16s ease; }
+    .cat.wink .eye-r { opacity:0; }
+    .cat.wink .wink-eye { opacity:1; }
+    /* 点猫彩蛋：小星星跳一下（包裹层，不与思考动画的 transform 冲突） */
+    .cstar-sm-wrap { transform-box:fill-box; transform-origin:center; }
+    @keyframes star-jump { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} 60%{transform:translateY(1px)} }
+    .cstar-sm-wrap.jump { animation: star-jump .5s ease-in-out; }
+    /* 发送闭环：标题蓝星闪一下 */
+    @keyframes star-flash { 0%,100%{transform:scale(1);filter:brightness(1)} 40%{transform:scale(1.5);filter:brightness(1.7) drop-shadow(0 0 12px #4aa8ff)} }
+    .sparkle.flash { animation: star-flash .5s ease-out !important; }
+    /* 发送闭环：按钮 loading 转圈 */
+    .csend .cspin { display:none; width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:spin .6s linear infinite; }
+    .csend.loading svg { display:none; }
+    .csend.loading .cspin { display:block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    /* 发送时猫的反应：有内容点头，空输入摇头 */
+    .cat { transform-box: fill-box; transform-origin: center; }
+    @keyframes cat-nod { 0%,100%{transform:translateY(0) rotate(0)} 30%{transform:translateY(7px) rotate(2deg)} 65%{transform:translateY(-2px) rotate(-1deg)} }
+    @keyframes cat-shake { 0%,100%{transform:rotate(0) scale(1)} 20%{transform:rotate(-5deg) scale(1.08)} 50%{transform:rotate(5deg) scale(1.08)} 80%{transform:rotate(-2deg) scale(1.08)} }
+    .cat.nod { animation:cat-nod .55s ease-in-out; }
+    .cat.shake { animation:cat-shake .6s ease-in-out; }
   </style>
 
   <svg width="100%" height="100%" viewBox="0 0 1200 900" preserveAspectRatio="none">
@@ -233,17 +278,24 @@
       <rect x="121" y="621" width="333" height="333" rx="69" fill="#ffffff"/>
       <rect x="126" y="626" width="323" height="323" rx="64" fill="#000000"/>
       <g clip-path="url(#frameClip)">
-        <g class="cat" clip-path="url(#spotClip)">
+        <g class="cat-reveal" clip-path="url(#spotClip)">
+        <g class="cat">
           <path d="M413 706h6v1h-6Z M412 707h8v1h-8Z M411 708h10v1h-10Z M410 709h12v1h-12Z M409 710h14v1h-14Z M408 711h16v1h-16Z M407 712h17v1h-17Z M406 713h19v1h-19Z M405 714h20v1h-20Z M405 715h21v1h-21Z M404 716h22v1h-22Z M403 717h24v1h-24Z M403 718h24v1h-24Z M402 719h26v1h-26Z M401 720h27v1h-27Z M400 721h29v1h-29Z M400 722h29v1h-29Z M399 723h31v1h-31Z M398 724h33v1h-33Z M398 725h33v1h-33Z M397 726h34v1h-34Z M396 727h36v1h-36Z M449 727h1v1h-1Z M395 728h37v1h-37Z M449 728h1v1h-1Z M395 729h38v1h-38Z M449 729h1v1h-1Z M394 730h39v1h-39Z M449 730h2v1h-2Z M393 731h41v1h-41Z M449 731h2v1h-2Z M393 732h41v1h-41Z M449 732h3v1h-3Z M392 733h43v1h-43Z M449 733h3v1h-3Z M391 734h44v1h-44Z M449 734h3v1h-3Z M391 735h45v1h-45Z M449 735h4v1h-4Z M390 736h46v1h-46Z M449 736h4v1h-4Z M389 737h48v1h-48Z M449 737h5v1h-5Z M389 738h48v1h-48Z M449 738h5v1h-5Z M388 739h49v1h-49Z M449 739h5v1h-5Z M387 740h51v1h-51Z M449 740h6v1h-6Z M387 741h51v1h-51Z M449 741h6v1h-6Z M386 742h53v1h-53Z M449 742h7v1h-7Z M386 743h53v1h-53Z M449 743h7v1h-7Z M385 744h55v1h-55Z M449 744h7v1h-7Z M384 745h56v1h-56Z M449 745h7v1h-7Z M384 746h57v1h-57Z M449 746h7v1h-7Z M383 747h58v1h-58Z M449 747h7v1h-7Z M382 748h60v1h-60Z M449 748h7v1h-7Z M382 749h60v1h-60Z M449 749h7v1h-7Z M381 750h61v1h-61Z M449 750h7v1h-7Z M368 751h75v1h-75Z M449 751h7v1h-7Z M359 752h84v1h-84Z M449 752h7v1h-7Z M352 753h92v1h-92Z M449 753h7v1h-7Z M346 754h98v1h-98Z M449 754h7v1h-7Z M341 755h104v1h-104Z M449 755h7v1h-7Z M337 756h108v1h-108Z M449 756h7v1h-7Z M333 757h113v1h-113Z M449 757h7v1h-7Z M330 758h116v1h-116Z M449 758h7v1h-7Z M326 759h121v1h-121Z M449 759h7v1h-7Z M323 760h124v1h-124Z M449 760h7v1h-7Z M320 761h128v1h-128Z M449 761h7v1h-7Z M317 762h131v1h-131Z M449 762h7v1h-7Z M315 763h141v1h-141Z M312 764h144v1h-144Z M310 765h146v1h-146Z M307 766h149v1h-149Z M221 767h9v1h-9Z M305 767h151v1h-151Z M220 768h13v1h-13Z M303 768h153v1h-153Z M219 769h16v1h-16Z M301 769h155v1h-155Z M219 770h19v1h-19Z M299 770h157v1h-157Z M218 771h23v1h-23Z M297 771h159v1h-159Z M218 772h26v1h-26Z M295 772h161v1h-161Z M218 773h28v1h-28Z M293 773h163v1h-163Z M218 774h30v1h-30Z M291 774h165v1h-165Z M218 775h32v1h-32Z M290 775h166v1h-166Z M218 776h35v1h-35Z M288 776h168v1h-168Z M218 777h37v1h-37Z M286 777h170v1h-170Z M218 778h40v1h-40Z M285 778h171v1h-171Z M219 779h41v1h-41Z M283 779h173v1h-173Z M219 780h43v1h-43Z M282 780h174v1h-174Z M219 781h45v1h-45Z M280 781h176v1h-176Z M219 782h48v1h-48Z M279 782h177v1h-177Z M219 783h50v1h-50Z M277 783h179v1h-179Z M219 784h52v1h-52Z M276 784h180v1h-180Z M219 785h54v1h-54Z M274 785h182v1h-182Z M219 786h237v1h-237Z M219 787h237v1h-237Z M219 788h237v1h-237Z M219 789h237v1h-237Z M219 790h237v1h-237Z M220 791h236v1h-236Z M220 792h236v1h-236Z M220 793h236v1h-236Z M220 794h236v1h-236Z M220 795h236v1h-236Z M220 796h236v1h-236Z M220 797h236v1h-236Z M220 798h236v1h-236Z M220 799h236v1h-236Z M220 800h236v1h-236Z M221 801h235v1h-235Z M221 802h235v1h-235Z M221 803h235v1h-235Z M221 804h235v1h-235Z M221 805h235v1h-235Z M221 806h235v1h-235Z M221 807h235v1h-235Z M221 808h235v1h-235Z M221 809h235v1h-235Z M222 810h234v1h-234Z M222 811h234v1h-234Z M222 812h234v1h-234Z M222 813h234v1h-234Z M222 814h234v1h-234Z M222 815h234v1h-234Z M222 816h234v1h-234Z M222 817h234v1h-234Z M222 818h234v1h-234Z M223 819h233v1h-233Z M223 820h233v1h-233Z M223 821h233v1h-233Z M223 822h233v1h-233Z M223 823h233v1h-233Z M223 824h233v1h-233Z M223 825h233v1h-233Z M223 826h233v1h-233Z M224 827h232v1h-232Z M224 828h232v1h-232Z M224 829h232v1h-232Z M224 830h232v1h-232Z M224 831h232v1h-232Z M224 832h232v1h-232Z M224 833h232v1h-232Z M224 834h232v1h-232Z M224 835h232v1h-232Z M223 836h233v1h-233Z M223 837h233v1h-233Z M222 838h234v1h-234Z M221 839h235v1h-235Z M221 840h235v1h-235Z M220 841h236v1h-236Z M220 842h236v1h-236Z M219 843h237v1h-237Z M219 844h237v1h-237Z M218 845h238v1h-238Z M218 846h238v1h-238Z M217 847h239v1h-239Z M217 848h239v1h-239Z M216 849h240v1h-240Z M216 850h185v1h-185Z M407 850h49v1h-49Z M215 851h184v1h-184Z M409 851h47v1h-47Z M215 852h182v1h-182Z M410 852h46v1h-46Z M215 853h181v1h-181Z M411 853h45v1h-45Z M214 854h181v1h-181Z M412 854h44v1h-44Z M214 855h181v1h-181Z M413 855h43v1h-43Z M214 856h180v1h-180Z M413 856h43v1h-43Z M213 857h181v1h-181Z M413 857h43v1h-43Z M213 858h181v1h-181Z M414 858h42v1h-42Z M212 859h182v1h-182Z M414 859h42v1h-42Z M212 860h182v1h-182Z M414 860h42v1h-42Z M212 861h182v1h-182Z M414 861h42v1h-42Z M211 862h183v1h-183Z M413 862h43v1h-43Z M211 863h183v1h-183Z M413 863h43v1h-43Z M211 864h184v1h-184Z M413 864h43v1h-43Z M211 865h184v1h-184Z M412 865h44v1h-44Z M210 866h186v1h-186Z M412 866h44v1h-44Z M210 867h187v1h-187Z M411 867h45v1h-45Z M210 868h188v1h-188Z M410 868h46v1h-46Z M210 869h189v1h-189Z M408 869h48v1h-48Z M210 870h192v1h-192Z M405 870h51v1h-51Z M209 871h247v1h-247Z M209 872h247v1h-247Z M209 873h247v1h-247Z M209 874h247v1h-247Z M209 875h149v1h-149Z M363 875h93v1h-93Z M209 876h145v1h-145Z M364 876h92v1h-92Z M208 877h94v1h-94Z M305 877h47v1h-47Z M365 877h91v1h-91Z M208 878h91v1h-91Z M308 878h41v1h-41Z M365 878h91v1h-91Z M208 879h89v1h-89Z M309 879h39v1h-39Z M365 879h91v1h-91Z M208 880h88v1h-88Z M310 880h37v1h-37Z M365 880h91v1h-91Z M208 881h87v1h-87Z M311 881h35v1h-35Z M365 881h91v1h-91Z M208 882h87v1h-87Z M312 882h34v1h-34Z M364 882h92v1h-92Z M208 883h86v1h-86Z M312 883h34v1h-34Z M364 883h92v1h-92Z M208 884h86v1h-86Z M313 884h34v1h-34Z M363 884h93v1h-93Z M208 885h85v1h-85Z M313 885h34v1h-34Z M362 885h94v1h-94Z M208 886h85v1h-85Z M313 886h36v1h-36Z M361 886h95v1h-95Z M208 887h85v1h-85Z M313 887h38v1h-38Z M361 887h95v1h-95Z M208 888h85v1h-85Z M313 888h40v1h-40Z M362 888h94v1h-94Z M208 889h85v1h-85Z M313 889h42v1h-42Z M363 889h93v1h-93Z M208 890h85v1h-85Z M313 890h42v1h-42Z M365 890h91v1h-91Z M208 891h86v1h-86Z M312 891h42v1h-42Z M366 891h90v1h-90Z M208 892h86v1h-86Z M312 892h42v1h-42Z M368 892h88v1h-88Z M208 893h87v1h-87Z M311 893h42v1h-42Z M359 893h1v1h-1Z M368 893h88v1h-88Z M208 894h88v1h-88Z M311 894h42v1h-42Z M358 894h4v1h-4Z M368 894h88v1h-88Z M208 895h89v1h-89Z M309 895h43v1h-43Z M357 895h6v1h-6Z M367 895h88v1h-88Z M208 896h90v1h-90Z M308 896h43v1h-43Z M357 896h98v1h-98Z M208 897h92v1h-92Z M306 897h45v1h-45Z M356 897h99v1h-99Z M208 898h143v1h-143Z M355 898h100v1h-100Z M208 899h144v1h-144Z M354 899h101v1h-101Z M208 900h247v1h-247Z M208 901h247v1h-247Z M209 902h246v1h-246Z M209 903h246v1h-246Z M209 904h246v1h-246Z M209 905h246v1h-246Z M209 906h245v1h-245Z M210 907h244v1h-244Z M210 908h244v1h-244Z M210 909h244v1h-244Z M210 910h243v1h-243Z M210 911h243v1h-243Z M211 912h242v1h-242Z M211 913h242v1h-242Z M211 914h241v1h-241Z M212 915h240v1h-240Z M212 916h240v1h-240Z M212 917h239v1h-239Z M213 918h238v1h-238Z M213 919h237v1h-237Z M214 920h236v1h-236Z M214 921h236v1h-236Z M214 922h235v1h-235Z M215 923h234v1h-234Z M215 924h233v1h-233Z M216 925h231v1h-231Z M216 926h231v1h-231Z M217 927h229v1h-229Z M217 928h229v1h-229Z M218 929h227v1h-227Z M218 930h226v1h-226Z M219 931h225v1h-225Z M220 932h223v1h-223Z M220 933h222v1h-222Z M221 934h220v1h-220Z M222 935h219v1h-219Z M222 936h218v1h-218Z M223 937h216v1h-216Z M224 938h214v1h-214Z M224 939h213v1h-213Z M225 940h211v1h-211Z M226 941h209v1h-209Z M227 942h207v1h-207Z M228 943h205v1h-205Z M228 944h203v1h-203Z M229 945h201v1h-201Z M230 946h199v1h-199Z M231 947h196v1h-196Z M232 948h194v1h-194Z M214 949h210v1h-210Z M215 950h207v1h-207Z M216 951h205v1h-205Z M217 952h202v1h-202Z M218 953h198v1h-198Z M218 954h196v1h-196Z M219 955h192v1h-192Z M220 956h187v1h-187Z M221 957h182v1h-182Z M222 958h170v1h-170Z" fill="#ffffff"/>
           <circle cx="302.5" cy="887" r="15" fill="#ffffff"/>
           <circle cx="403.5" cy="860" r="15" fill="#ffffff"/>
           <circle cx="302.5" cy="887" r="15" fill="#ffffff"/>
           <circle cx="403.5" cy="860" r="15" fill="#ffffff"/>
+          <path class="wink-eye" d="M392 863 Q404 850 416 863" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
+          <path class="sleep-eye" d="M291 884 Q303 897 315 884" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
+          <path class="sleep-eye" d="M392 857 Q404 870 416 857" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
+
           <g class="eye-l"><path d="M302 877h3v1h-3Z M299 878h9v1h-9Z M297 879h12v1h-12Z M296 880h14v1h-14Z M295 881h16v1h-16Z M295 882h17v1h-17Z M294 883h18v1h-18Z M294 884h19v1h-19Z M293 885h20v1h-20Z M293 886h20v1h-20Z M293 887h20v1h-20Z M293 888h20v1h-20Z M293 889h20v1h-20Z M293 890h20v1h-20Z M294 891h18v1h-18Z M294 892h18v1h-18Z M295 893h16v1h-16Z M296 894h14v1h-14Z M297 895h12v1h-12Z M298 896h10v1h-10Z M300 897h6v1h-6Z" fill="#000000"/></g>
           <g class="eye-r"><path d="M401 850h6v1h-6Z M399 851h10v1h-10Z M397 852h13v1h-13Z M396 853h15v1h-15Z M395 854h17v1h-17Z M395 855h17v1h-17Z M394 856h19v1h-19Z M394 857h19v1h-19Z M394 858h19v1h-19Z M394 859h20v1h-20Z M394 860h20v1h-20Z M394 861h20v1h-20Z M394 862h19v1h-19Z M394 863h19v1h-19Z M395 864h18v1h-18Z M395 865h17v1h-17Z M396 866h15v1h-15Z M397 867h14v1h-14Z M398 868h11v1h-11Z M400 869h8v1h-8Z M402 870h3v1h-3Z" fill="#000000"/></g>
           <path d="M358 875h5v1h-5Z M355 876h9v1h-9Z M352 877h13v1h-13Z M350 878h15v1h-15Z M348 879h17v1h-17Z M347 880h18v1h-18Z M346 881h19v1h-19Z M346 882h18v1h-18Z M346 883h18v1h-18Z M347 884h16v1h-16Z M347 885h15v1h-15Z M349 886h12v1h-12Z M351 887h10v1h-10Z M353 888h9v1h-9Z M355 889h8v1h-8Z M355 890h9v1h-9Z M354 891h12v1h-12Z M354 892h13v1h-13Z M353 893h6v1h-6Z M360 893h8v1h-8Z M353 894h5v1h-5Z M362 894h6v1h-6Z M352 895h5v1h-5Z M363 895h4v1h-4Z M351 896h6v1h-6Z M351 897h5v1h-5Z M351 898h4v1h-4Z M352 899h2v1h-2Z" fill="#000000"/>
         </g>
+        </g>
       </g>
+      <rect id="catHit" x="121" y="621" width="333" height="333" rx="69" fill="transparent" pointer-events="all" style="cursor:pointer"/>
     </g>
 
     <g transform="translate(600 690) scale(0.86) translate(-1006.5 -835)">
@@ -266,9 +318,9 @@
 </svg>
     <div class="chatbar-shell" id="chatbarShell">
   <div xmlns="http://www.w3.org/1999/xhtml" class="chatbar">
-          <svg class="cstar" viewBox="0 0 1024 1024"><path d="M714.4 544.576l-85.6-26.08c-80.48-24.704-143.776-89.44-167.488-172.832l-25.12-89.472a36.064 36.064 0 0 0-23.744-24.672 34.24 34.24 0 0 0-26.976 2.784c-8.384 4.672-14.4 12.576-17.216 21.888l-25.6 88.96c-23.68 82.944-86.976 148.16-167.456 172.864l-85.6 26.112c-14.912 4.64-25.6 18.624-25.6 34.912 0 15.84 10.24 30.304 25.12 34.944l86.528 27.04c80 24.672 142.368 89.44 166.56 171.904l25.6 88.96c4.16 15.392 18.144 26.112 33.92 26.112 15.84 0 29.792-10.72 33.984-26.08l25.6-88.992c23.712-82.464 86.528-147.2 166.08-172.384l87.008-27.008c15.36-4.672 25.6-19.104 25.12-34.944a35.2 35.2 0 0 0-25.12-34.016z m233.984-285.888l-33.984-10.24a152.384 152.384 0 0 1-101.888-105.28l-10.24-35.424a15.36 15.36 0 0 0-10.688-11.2h-0.448a15.968 15.968 0 0 0-19.552 11.68l-10.24 35.392a153.28 153.28 0 0 1-101.888 105.28l-33.952 10.24a16.48 16.48 0 0 0-11.648 15.872c0 7.424 4.672 13.504 11.648 15.84l34.432 10.688a153.76 153.76 0 0 1 101.44 104.832l10.208 35.424a15.904 15.904 0 0 0 30.72 0l10.24-35.424a152.864 152.864 0 0 1 101.408-104.832l34.432-10.688A16.928 16.928 0 0 0 960 275.008c0-7.936-4.64-14.464-11.616-16.32z" fill="#0185f3"/></svg>
+          <svg class="cstar" viewBox="0 0 1024 1024"><path d="M714.4 544.576l-85.6-26.08c-80.48-24.704-143.776-89.44-167.488-172.832l-25.12-89.472a36.064 36.064 0 0 0-23.744-24.672 34.24 34.24 0 0 0-26.976 2.784c-8.384 4.672-14.4 12.576-17.216 21.888l-25.6 88.96c-23.68 82.944-86.976 148.16-167.456 172.864l-85.6 26.112c-14.912 4.64-25.6 18.624-25.6 34.912 0 15.84 10.24 30.304 25.12 34.944l86.528 27.04c80 24.672 142.368 89.44 166.56 171.904l25.6 88.96c4.16 15.392 18.144 26.112 33.92 26.112 15.84 0 29.792-10.72 33.984-26.08l25.6-88.992c23.712-82.464 86.528-147.2 166.08-172.384l87.008-27.008c15.36-4.672 25.6-19.104 25.12-34.944a35.2 35.2 0 0 0-25.12-34.016z" fill="#0185f3"/><g class="cstar-sm-wrap"><path class="cstar-sm" d="M948.384 258.688l-33.984-10.24a152.384 152.384 0 0 1-101.888-105.28l-10.24-35.424a15.36 15.36 0 0 0-10.688-11.2h-0.448a15.968 15.968 0 0 0-19.552 11.68l-10.24 35.392a153.28 153.28 0 0 1-101.888 105.28l-33.952 10.24a16.48 16.48 0 0 0-11.648 15.872c0 7.424 4.672 13.504 11.648 15.84l34.432 10.688a153.76 153.76 0 0 1 101.44 104.832l10.208 35.424a15.904 15.904 0 0 0 30.72 0l10.24-35.424a152.864 152.864 0 0 1 101.408-104.832l34.432-10.688A16.928 16.928 0 0 0 960 275.008c0-7.936-4.64-14.464-11.616-16.32z" fill="#0185f3"/></g></svg>
           <input type="text" placeholder="告诉 Getbuddy 你的想法..." aria-label="告诉 Getbuddy 你的想法"/>
-          <button class="csend" type="button" aria-label="发送"><svg viewBox="0 0 24 24"><path d="M12 20a1.5 1.5 0 0 1-1.5-1.5V7.62l-4.06 4.06a1.5 1.5 0 0 1-2.12-2.12l6.62-6.62a1.5 1.5 0 0 1 2.12 0l6.62 6.62a1.5 1.5 0 0 1-2.12 2.12L13.5 7.62V18.5A1.5 1.5 0 0 1 12 20z" fill="#ffffff"/></svg></button>
+          <button class="csend" type="button" aria-label="发送"><svg viewBox="0 0 24 24"><path d="M12 4.2 L19.6 19.4 L12 15.4 L4.4 19.4 Z" fill="#ffffff" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="cspin"></span></button>
         </div>
     </div>
   </div>
@@ -280,6 +332,13 @@
     var btn = document.querySelector('.chatbar .csend');
     var toast = document.getElementById('gb-toast');
     var timer;
+    var sparkle = document.querySelector('.sparkle');
+    var cstarWrap = document.querySelector('.cstar-sm-wrap');
+    var eyeL = document.querySelector('.eye-l');
+    var eyeR = document.querySelector('.eye-r');
+    var catHit = document.getElementById('catHit');
+    var cat = document.querySelector('.cat');
+    var busy = false;
     if(!input || !btn || !toast) return;
     var bar = document.querySelector('.chatbar');
     function place(){
@@ -296,15 +355,57 @@
       timer = setTimeout(function(){ toast.classList.remove('show'); }, 1800);
     }
     function submit(){
+      if(busy) return;
       var v = (input.value || '').trim();
-      show(v ? '暂未开放' : '请输入内容');
+      busy = true;
+      btn.classList.add('loading');
+      setTimeout(function(){
+        btn.classList.remove('loading');
+        if(sparkle){
+          sparkle.classList.remove('flash'); void sparkle.getBoundingClientRect();
+          sparkle.classList.add('flash');
+          setTimeout(function(){ sparkle.classList.remove('flash'); }, 520);
+        }
+        show(v ? '暂未开放' : '请输入内容');
+        if(cat){
+          if(v){
+            // 有内容：眼睛变成睡着的姿态
+            cat.classList.remove('nod','shake'); void cat.getBoundingClientRect();
+            cat.classList.add('sleepy');
+            setTimeout(function(){ cat.classList.remove('sleepy'); }, 3000);
+          } else {
+            cat.classList.remove('nod','sleepy'); void cat.getBoundingClientRect();
+            cat.classList.add('shake');
+            setTimeout(function(){ cat.classList.remove('shake'); }, 650);
+          }
+        }
+        busy = false;
+      }, 620);
     }
     btn.addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ submit(); } });
 
+    // 点猫彩蛋：俏皮 wink（一条向上拱的弯月）+ 输入框小星星跳一下
+    if(catHit){
+      catHit.addEventListener('click', function(){
+        if(cat){
+          cat.classList.remove('wink'); void cat.getBoundingClientRect();
+          cat.classList.add('wink');
+          setTimeout(function(){ cat.classList.remove('wink'); }, 1400);
+        }
+        if(cstarWrap){
+          cstarWrap.classList.remove('jump'); void cstarWrap.getBoundingClientRect();
+          cstarWrap.classList.add('jump');
+          setTimeout(function(){ cstarWrap.classList.remove('jump'); }, 520);
+        }
+      });
+    }
+
     // 打字机占位文字：逐字出现，完成后循环重打
     var texts = ['告诉 Getbuddy 你的想法...', '像聊天一样，更少操作，更多成果。', '极简交互，懂你所想，帮你所需。'];
     var seg = 0, idx = 0, phase = 'type', hold = 0;
+    // 聚焦时移除打字机的假光标 |，避免与浏览器原生 caret 同时出现两个光标
+    input.addEventListener('focus', function(){ input.placeholder = texts[seg]; });
     var anchor = document.getElementById('foAnchor');
     var shell = document.getElementById('chatbarShell');
     var mctx = document.createElement('canvas').getContext('2d');
@@ -323,14 +424,14 @@
     function fitWidth(text){
       if(!anchor) return;
       var mobile = window.matchMedia('(max-width:640px)').matches;
-      var px = mobile ? 30 : 36;
+      var px = mobile ? 40 : 36;
       mctx.font = px + 'px "PingFang SC", "Microsoft YaHei", sans-serif';
-      var w = mobile ? 780 : Math.max(560, Math.min(Math.ceil(240 + mctx.measureText(text).width + 20), 1080));
-      var h = mobile ? 104 : 88;
+      var w = mobile ? Math.max(640, Math.min(Math.ceil(260 + mctx.measureText(text).width + 20), 1080)) : Math.max(560, Math.min(Math.ceil(240 + mctx.measureText(text).width + 20), 1080));
+      var h = mobile ? 138 : 88;
       barW = w; barH = h;
       anchor.setAttribute('width', w);
-      anchor.setAttribute('x', mobile ? 210 : (1200 - w) / 2);
-      anchor.setAttribute('y', mobile ? 842 : 800);
+      anchor.setAttribute('x', (1200 - w) / 2);
+      anchor.setAttribute('y', mobile ? 825 : 800);
       anchor.setAttribute('height', h);
       positionChatbar();
     }
@@ -342,6 +443,12 @@
     setTimeout(function tick(){
       var fullText = texts[seg];
       var delay = 130;
+      // 聚焦且无输入时只保留原生 caret，暂停止打字机的假光标
+      if(document.activeElement === input){
+        input.placeholder = fullText;
+        setTimeout(tick, delay);
+        return;
+      }
       if(phase === 'type'){
         idx++;
         input.placeholder = fullText.slice(0, idx) + '|';
