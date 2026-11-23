@@ -21,6 +21,7 @@
   .footer a { color:#9dbcf0; text-decoration:none; }
   .footer a:hover { text-decoration:underline; }
   .scene { transform-box:view-box; }
+  .fo-chat { background:transparent; fill:none; border-radius:999px; }
   @media (min-width:641px){
     .scene { transform-origin:600px 450px; transform:translateY(-100px) scale(.8); }
   }
@@ -313,6 +314,7 @@
       fo.style.x = ((1200 - w) / 2) + 'px';
     }
     fitWidth(texts[0]);
+    input.placeholder = '';
     window.addEventListener('resize', function(){ fitWidth(texts[seg]); });
     setTimeout(function tick(){
       var fullText = texts[seg];
@@ -332,7 +334,7 @@
         if(idx <= 0){ phase = 'type'; idx = 0; seg = (seg + 1) % texts.length; fitWidth(texts[seg]); }
       }
       setTimeout(tick, delay);
-    }, 1800);
+    }, 2400);
   })();
   </script>
 </body>
